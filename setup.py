@@ -28,7 +28,13 @@ if os.getenv("FORCE_ONLY_CPU", "0") == "1":
 def get_ext_modules():
     TORCH_MAJOR = int(torch.__version__.split(".")[0])
     TORCH_MINOR = int(torch.__version__.split(".")[1])
-    extra_compile_args = {"cxx": ["-O3"]}
+    
+    if sys.platform == "win32":
+        # MSVC uses /O2, not -O3
+        extra_compile_args["cxx"].append("/O2")
+    else:
+        extra_compile_args["cxx"].append("-O3")
+    
     if (TORCH_MAJOR > 1) or (TORCH_MAJOR == 1 and TORCH_MINOR > 2):
         extra_compile_args["cxx"] += ["-DVERSION_GE_1_3"]
 
@@ -42,6 +48,11 @@ def get_ext_modules():
         nvcc_flags = os.getenv("NVCC_FLAGS", "")
         nvcc_flags = [] if nvcc_flags == "" else nvcc_flags.split(" ")
         nvcc_flags += ["--expt-relaxed-constexpr", "-O2"]
+
+        if sys.platform == "win32":
+            if "-allow-unsupported-compiler" not in nvcc_flags:
+                nvcc_flags.append("-allow-unsupported-compiler")
+        
         extra_compile_args["nvcc"] = nvcc_flags
 
         ext_modules.append(
