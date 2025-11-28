@@ -29,6 +29,8 @@ if os.getenv("FORCE_ONLY_CPU", "0") == "1":
 def get_ext_modules():
     TORCH_MAJOR = int(torch.__version__.split(".")[0])
     TORCH_MINOR = int(torch.__version__.split(".")[1])
+
+    extra_compile_args = {"cxx": []}
     
     if sys.platform == "win32":
         # MSVC uses /O2, not -O3
